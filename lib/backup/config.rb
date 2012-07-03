@@ -113,7 +113,7 @@ module Backup
             # Syncers
             [
               { 'Cloud' => ['CloudFiles', 'S3'] },
-              { 'RSync' => ['Push', 'Pull', 'Local'] }
+              { 'RSync' => ['Push', 'Pull', 'Local', 'PushDaemon'] }
             ],
             # Notifiers
             ['Mail', 'Twitter', 'Campfire', 'Prowl', 'Hipchat']

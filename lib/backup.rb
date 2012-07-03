@@ -63,6 +63,7 @@ module Backup
       autoload :Local, File.join(SYNCER_PATH, 'rsync', 'local')
       autoload :Push,  File.join(SYNCER_PATH, 'rsync', 'push')
       autoload :Pull,  File.join(SYNCER_PATH, 'rsync', 'pull')
+      autoload :PushDaemon,  File.join(SYNCER_PATH, 'rsync', 'push_daemon')
     end
   end
 
