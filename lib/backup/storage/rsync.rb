@@ -26,6 +26,10 @@ module Backup
       attr_accessor :local
 
       ##
+      # Flag to use daemon backups
+      attr_accessor :daemon
+
+      ##
       # Creates a new instance of the storage object
       def initialize(model, storage_id = nil, &block)
         super(model, storage_id)
@@ -33,6 +37,7 @@ module Backup
         @port   ||= 22
         @path   ||= 'backups'
         @local  ||= false
+        @daemon ||= false
 
         instance_eval(&block) if block_given?
 
@@ -46,7 +51,11 @@ module Backup
       #
       # Note: This overrides the superclass' method
       def remote_path_for(package)
-        File.join(path, package.trigger)
+        if daemon
+          path
+        else
+          File.join(path, package.trigger)
+        end
       end
 
       ##
@@ -74,6 +83,15 @@ module Backup
               "#{ utility(:rsync) } '#{ File.join(local_path, local_file) }' " +
               "'#{ File.join(remote_path, remote_file) }'"
             )
+          end
+          if daemon
+            Logger.message "#{storage_name} started transferring " +
+                "'#{ local_file }' to '#{ ip }'."
+            run(
+              "#{ utility(:rsync) } --recursive #{ rsync_options }" +
+              "#{ rsync_password_file } '#{ File.join(local_path, local_file) }' " +
+              "'rsync://#{ username }@#{ ip }:#{@port}#{ File.join(remote_path, remote_file) }'"
+            )
           else
             Logger.message "#{storage_name} started transferring " +
                 "'#{ local_file }' to '#{ ip }'."
@@ -100,8 +118,10 @@ module Backup
         if @local
           FileUtils.mkdir_p(remote_path)
         else
-          connection do |ssh|
-            ssh.exec!("mkdir -p '#{ remote_path }'")
+          unless @daemon
+            connection do |ssh|
+              ssh.exec!("mkdir -p '#{ remote_path }'")
+            end
           end
         end
       end
